@@ -7,17 +7,24 @@ main()
 	print("----------------------------------\n");
 }
 
+new DB:main_db;
 public OnGameModeInit()
 {
-	// Don't use these lines if it's a filterscript
+	// Tenta abrir o banco de dados principal. Caso não consiga fecha o servidor
+	if((main_db = db_open("data.db")) == DB:0)
+	{
+		print("[ERRO] Erro ao abrir o banco de dados! O servidor será fechado!");
+		return SendRconCommand("exit");
+	}
 	SetGameModeText("Blank Script");
 	AddPlayerClass(0, 1958.3783, 1343.1572, 15.3746, 269.1425, 0, 0, 0, 0, 0, 0);
-	AddStaticVehicle(463, 1958.3783, 1343.1572, 15.3746, 269.1425, 0, 1);
 	return 1;
 }
 
 public OnGameModeExit()
 {
+	// Fecha o banco de dados ao sair do GM
+	db_close(main_db);
 	return 1;
 }
 
@@ -61,10 +68,31 @@ public OnPlayerText(playerid, text[])
 
 public OnPlayerCommandText(playerid, cmdtext[])
 {
-	if (strcmp("/mycommand", cmdtext, true, 10) == 0)
-	{
-		// Do something here
+	/* TUDO AQUI DENTRO É DEBUG! */
+	new Float:x, Float:y, Float:z, Float:ang, vid;
+	if (strcmp("/moto", cmdtext, true, 10) == 0)
+	{		
+		GetPlayerPos(playerid, x, y, z);
+		GetPlayerFacingAngle(playerid, ang);
+		AddStaticVehicle(463, x, y, z, ang, 0, 1);
+		SendClientMessage(playerid, 0xFFFFFFFF, "[INFO] Spawnou uma moto! Parabéns!.");
 		return 1;
+	}
+	if(strcmp(cmdtext, "/flip", true) == 0)
+	{
+		if(IsPlayerInAnyVehicle(playerid))
+		{
+			vid = GetPlayerVehicleID(playerid);
+			GetVehicleZAngle(vid, ang);
+			SetVehicleZAngle(vid, ang);
+			SendClientMessage(playerid, 0xFFFFFFFF, "[INFO] Veículo invertido.");
+			return 1;
+		}
+		else
+		{
+			SendClientMessage(playerid, 0xFFFFFFFF, "You are not in any vehicle!");
+			return 1;
+		}
 	}
 	return 0;
 }
