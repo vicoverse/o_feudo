@@ -45,5 +45,6 @@ $RECYCLE.BIN/
 # End of https://www.gitignore.io/api/linux,windows
 
 # Específicos do projeto
+*.amx
 build/
 pawno/
