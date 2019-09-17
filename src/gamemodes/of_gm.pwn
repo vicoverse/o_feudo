@@ -7,8 +7,11 @@
  */
 
 /* BIBLIOTECAS */
-#include <a_samp>						// Biblioteca padrão do SA:MP
-#include "../include/of_common.inc"		// Biblioteca padrão do projeto
+#include "../include/of_comuns.inc"		// Biblioteca padrão do projeto
+
+/* VARIÁVEIS GLOBAIS */
+new bd_nome[16] = "dados.db";		// Nome do arquivo do banco de dados principal (ALTERAR CASO RENOMEIE!)
+new DB:db_principal;				// Armazena a instância atual do banco de dados
 
 main()
 {
@@ -17,14 +20,21 @@ main()
 
 public OnGameModeInit()
 {
-	// Don't use these lines if it's a filterscript
+	// Incializa o Banco de Dados SQLite principal para ser usado no servidor
+	ConectarBD(bd_nome, db_principal);
+
+	// Ajusta as informações do servidor
 	SetGameModeText("O Feudo v0.0alpha");
+	
+	
 	AddPlayerClass(0, 1958.3783, 1343.1572, 15.3746, 269.1425, 0, 0, 0, 0, 0, 0);
 	return 1;
 }
 
 public OnGameModeExit()
 {
+	// Fecha o BD principal
+	DesconectarBD(db_principal);
 	return 1;
 }
 
@@ -38,11 +48,13 @@ public OnPlayerRequestClass(playerid, classid)
 
 public OnPlayerConnect(playerid)
 {
+	LoginPlayer(db_principal, playerid);
 	return 1;
 }
 
 public OnPlayerDisconnect(playerid, reason)
 {
+	SyncPlayer(db_principal, playerid);
 	return 1;
 }
 
