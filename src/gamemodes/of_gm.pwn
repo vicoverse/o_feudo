@@ -1,30 +1,30 @@
-#include <a_samp>
+/*
+ *	@name				O FEUDO - GameMode Principal
+ *	@version			0.0alpha
+ *	@author			Vico
+ *	@description		Gamemode 4fun para o SA:MP 0.3DL.
+ *
+ */
+
+/* BIBLIOTECAS */
+#include <a_samp>						// Biblioteca padrão do SA:MP
+#include "../include/of_common.inc"		// Biblioteca padrão do projeto
 
 main()
 {
-	print("\n----------------------------------");
-	print(" Blank Gamemode by your name here");
-	print("----------------------------------\n");
+	print("[INFO] [main]: Servidor operacional!");
 }
 
-new DB:main_db;
 public OnGameModeInit()
 {
-	// Tenta abrir o banco de dados principal. Caso não consiga fecha o servidor
-	if((main_db = db_open("data.db")) == DB:0)
-	{
-		print("[ERRO] Erro ao abrir o banco de dados! O servidor será fechado!");
-		return SendRconCommand("exit");
-	}
-	SetGameModeText("Blank Script");
+	// Don't use these lines if it's a filterscript
+	SetGameModeText("O Feudo v0.0alpha");
 	AddPlayerClass(0, 1958.3783, 1343.1572, 15.3746, 269.1425, 0, 0, 0, 0, 0, 0);
 	return 1;
 }
 
 public OnGameModeExit()
 {
-	// Fecha o banco de dados ao sair do GM
-	db_close(main_db);
 	return 1;
 }
 
@@ -68,31 +68,10 @@ public OnPlayerText(playerid, text[])
 
 public OnPlayerCommandText(playerid, cmdtext[])
 {
-	/* TUDO AQUI DENTRO É DEBUG! */
-	new Float:x, Float:y, Float:z, Float:ang, vid;
-	if (strcmp("/moto", cmdtext, true, 10) == 0)
-	{		
-		GetPlayerPos(playerid, x, y, z);
-		GetPlayerFacingAngle(playerid, ang);
-		AddStaticVehicle(463, x, y, z, ang, 0, 1);
-		SendClientMessage(playerid, 0xFFFFFFFF, "[INFO] Spawnou uma moto! Parabéns!.");
-		return 1;
-	}
-	if(strcmp(cmdtext, "/flip", true) == 0)
+	if (strcmp("/mycommand", cmdtext, true, 10) == 0)
 	{
-		if(IsPlayerInAnyVehicle(playerid))
-		{
-			vid = GetPlayerVehicleID(playerid);
-			GetVehicleZAngle(vid, ang);
-			SetVehicleZAngle(vid, ang);
-			SendClientMessage(playerid, 0xFFFFFFFF, "[INFO] Veículo invertido.");
-			return 1;
-		}
-		else
-		{
-			SendClientMessage(playerid, 0xFFFFFFFF, "You are not in any vehicle!");
-			return 1;
-		}
+		// Do something here
+		return 1;
 	}
 	return 0;
 }
@@ -312,4 +291,3 @@ public OnVehicleDamageStatusUpdate(vehicleid, playerid)
 {
 	return 1;
 }
-
