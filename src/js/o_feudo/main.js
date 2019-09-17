@@ -1,31 +1,21 @@
 /**
- * Remake of new.pwn in samp.js/JavaScript 
+  *	@name				O FEUDO - GameMode Principal
+  *	@description		Script principal (GameMode) do sistema "O Feudo", 4fun para o SA:MP 0.3DL
+  *	@version			0.0alpha
+  * @author				Vico
+  * 
  **/
 
+/* Bibliotecas principais do samp.JS */
 include("js/include/a_samp.inc.js");
 include("js/include/a_players.inc.js");
 include("js/include/a_vehicles.inc.js");
 include("js/include/a_objects.inc.js");
 
-
-$server.on("FilterScriptInit",function()
-{
-	print("\n--------------------------------------");
-	print(" Blank Filterscript by your name here");
-	print("--------------------------------------\n");
-	return 1;
-});
-
-$server.on("FilterScriptExit",function()
-{
-	return 1;
-});
-
+/* Quando o servidor iniciar */
 $server.on("ScriptInit",function()
 {
-	print("\n----------------------------------");
-	print(" Blank Gamemode by your name here");
-	print("----------------------------------\n");
+	print("[INFO] [main]: Servidor operacional!");
 });
 
 
