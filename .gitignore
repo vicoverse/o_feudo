@@ -44,7 +44,47 @@ $RECYCLE.BIN/
 
 # End of https://www.gitignore.io/api/linux,windows
 
-# Específicos do projeto
+# Compilados .amx
 *.amx
-build/
-pawno/
+
+# Arquivos do SA-MP server
+src/announce.exe
+src/js/include/a_actor.inc.js
+src/js/include/a_http.inc.js
+src/js/include/a_npc.inc.js
+src/js/include/a_objects.inc.js
+src/js/include/a_players.inc.js
+src/js/include/a_samp.inc.js
+src/js/include/a_sampdb.inc.js
+src/js/include/a_vehicles.inc.js
+src/js/include/server.js
+src/js/include/streamer.inc.js
+src/js/samp.js/Buffer.js
+src/js/samp.js/Dater.js
+src/js/samp.js/Event.js
+src/js/samp.js/Events.js
+src/js/samp.js/FileSystem.js
+src/js/samp.js/GlobalObject.js
+src/js/samp.js/GlobalTextDraw.js
+src/js/samp.js/ListenSocket.js
+src/js/samp.js/MySQL.js
+src/js/samp.js/MySQLConnection.js
+src/js/samp.js/Object.js
+src/js/samp.js/Player.js
+src/js/samp.js/PlayerObject.js
+src/js/samp.js/Players.js
+src/js/samp.js/PlayerTextDraw.js
+src/js/samp.js/Publics.js
+src/js/samp.js/Server.js
+src/js/samp.js/Socket.js
+src/js/samp.js/Sockets.js
+src/js/samp.js/SQLString.js
+src/js/samp.js/Vehicle.js
+src/libmysql.dll
+src/plugins/samp.js.dll
+src/samp-license.txt
+src/samp-npc.exe
+src/samp-server.exe
+src/server-readme.txt
+src/server.cfg
+src/server_log.txt
