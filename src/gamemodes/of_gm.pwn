@@ -136,11 +136,15 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 		case DIALOGO_REGISTRO:
 		{
 			if(!response) Kick(playerid);		// Caso o jogador cancele o diálogo, kicka (ALTERAR MAIS TARDE PARA A FUNÇÃO PERSONALIZADA!)
+			
+			// FAZER O RESTO...
 		}
 		// Caso seja o diálogo de login
 		case DIALOGO_LOGIN:
 		{
 			if(!response) Kick(playerid);		// Caso o jogador cancele o diálogo, kicka (ALTERAR MAIS TARDE PARA A FUNÇÃO PERSONALIZADA!)
+			
+			// FAZER O RESTO...
 		}
 	}
 	return 1;
