@@ -8,6 +8,7 @@
  
 /* BIBLIOTECAS */
 #include "../include/of_common.inc"		// Biblioteca principal do projeto
+#include "../include/MD5.inc"				// Biblioteca para gerar hash MD5
 
 /* CONSTANTES */
 // dcmd
@@ -77,6 +78,45 @@ stock check_for_account(playerid, DB:handle)
 		return 1;							// Tem uma conta.
     }
 }
+// Checa a senha com o banco de dados
+stock checar_senha(playerid, password[], DB:handle)
+{
+	new query_sql[48+MAX_PLAYER_NAME];				// SQL da query
+	new DBResult:query_result;					// Recebe a id da query para poder limpar depois
+	new db_password[128];							// Senha no banco de dados
+	
+	format(query_sql, sizeof(query_sql), "SELECT * FROM `players` WHERE `name`='%q' LIMIT 1", return_playername(playerid));				 // Formata a string SQL para a consulta
+	
+	query_result = db_query(handle, query_sql);	// Realiza a consulta no BD
+	
+	// Se tem algum resultado
+	if(db_num_rows(query_result))
+	{
+		// Salva a senha na variável
+		db_get_field_assoc(query_result, "senha", db_password, sizeof db_password);
+	}	
+	db_free_result(query_result); // Limpa a query
+	
+	// Compara diretamente as duas senhas (na verdade os dois hashes), se batem retorna 1 para confirmar o login
+	if (!strcmp(password, db_password, true))
+	{
+		return 1;
+	}	
+	return 0;
+}
+// Cadastra o usuário no banco de dados
+stock cadastrar_usuario(playerid, password[], DB:handle)
+{
+	new query_sql[255];								// SQL da query
+	
+	// Formata a string SQL para a inserção
+	format(query_sql, sizeof(query_sql), "INSERT INTO `players` (`name`, `senha`, `level`, `score`, `skinid`, `money`) VALUES ('%q', '%q', '0', '0', '-1', '0');", return_playername(playerid), password);
+	
+	// Realiza a query
+	db_free_result(db_query(handle, query_sql));
+	
+	return 1;
+}
 
 /* CALLBACKS */
 /* OnGameModeInit */
@@ -135,19 +175,42 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 		// Caso seja o diálogo de registro
 		case DIALOGO_REGISTRO:
 		{
-			if(!response) Kick(playerid);		// Caso o jogador cancele o diálogo, kicka (ALTERAR MAIS TARDE PARA A FUNÇÃO PERSONALIZADA!)
-			
-			// FAZER O RESTO...
+			if(!response) // Caso o jogador cancele o diálogo, kicka (ALTERAR MAIS TARDE PARA A FUNÇÃO PERSONALIZADA!)
+			{
+				Kick(playerid);
+			}
+			else // Apertou ENTER ou clicou no 'Registrar'
+			{
+				// Cadastra o usuário no banco de dados
+				cadastrar_usuario(playerid, MD5_Hash(inputtext, true), db_handle);
+			}
+			return 1;
 		}
 		// Caso seja o diálogo de login
 		case DIALOGO_LOGIN:
 		{
-			if(!response) Kick(playerid);		// Caso o jogador cancele o diálogo, kicka (ALTERAR MAIS TARDE PARA A FUNÇÃO PERSONALIZADA!)
-			
-			// FAZER O RESTO...
+			if(!response) // Caso o jogador cancele o diálogo, kicka (ALTERAR MAIS TARDE PARA A FUNÇÃO PERSONALIZADA!)
+			{
+				Kick(playerid);
+			}
+			else // Apertou ENTER ou clicou no 'Login'
+			{
+				if(checar_senha(playerid, MD5_Hash(inputtext, true), db_handle))
+				{
+					SendClientMessage(playerid, 0xAA3333AA, "You are now logged in!");
+				}
+				else
+				{
+					SendClientMessage(playerid, 0xAA3333AA, "LOGIN FAILED.");
+
+					// Mostra o diálogo de novo (fazer leves alterações mais tardes com uma mensagem e uma forma de contar o numero de vezes que o jogador errou a senha)
+					ShowPlayerDialog(playerid, DIALOGO_LOGIN, DIALOG_STYLE_PASSWORD, "{FF0000}# {FFFFFF}San Andreas: O Feudo", "{FFFFFF}Digite a sua senha para logar-se", "Logar", "");
+				}
+			}
+			return 1; // We handled a dialog, so return 1. Just like OnPlayerCommandText.
 		}
 	}
-	return 1;
+	return 0;
 }
 
 public OnPlayerDisconnect(playerid, reason)
