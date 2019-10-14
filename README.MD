@@ -9,13 +9,12 @@ O projeto consiste em um sistema completo para servidores de SA:MP (San Andreas 
 Este repositório contém uma coleção de códigos, composto por um gamemode (script principal) e vários filterscripts (scripts adicionais).
 
 ### Tecnologias
-- [SA:MP](https://www.sa-mp.com/);
+- [SA:MP 0.3DL](https://www.sa-mp.com/);
 - [PAWN Script](https://github.com/compuphase/pawn);
-- ~~[SAMP.js](https://github.com/damospiderman/samp.js/)~~ - Ainda não sei ao certo se vou utilizar;
 
 ## Motivação
 
-Criar um servidor limpo, organizado e diferenciado em relação às soluções existentes.
+Criar um servidor mais parecido com os antigos 4fun do começo da década, é claro com alguns elementos atuais.
 
 ## Membros
 

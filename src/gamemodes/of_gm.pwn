@@ -1,40 +1,102 @@
 /*
  *	@name				O FEUDO - GameMode Principal
  *	@version			0.0alpha
- *	@author			Vico
+ *	@author				Vico
  *	@description		Gamemode 4fun para o SA:MP 0.3DL.
  *
  */
-
+ 
 /* BIBLIOTECAS */
-#include "../include/of_comuns.inc"		// Biblioteca padrão do projeto
+#include "../include/of_common.inc"		// Biblioteca principal do projeto
 
-/* VARIÁVEIS GLOBAIS */
-new bd_nome[16] = "dados.db";		// Nome do arquivo do banco de dados principal (ALTERAR CASO RENOMEIE!)
-new DB:db_principal;				// Armazena a instância atual do banco de dados
+/* CONSTANTES */
+// dcmd
+#define dcmd(%1,%2,%3) if (!strcmp((%3)[1], #%1, true, (%2)) && ((((%3)[(%2) + 1] == '\0') && (dcmd_%1(playerid, ""))) || (((%3)[(%2) + 1] == ' ') && (dcmd_%1(playerid, (%3)[(%2) + 2]))))) return 1
 
-main()
+/* DIÁLOGOS */
+// Enum com as IDS dos diálogos
+enum
 {
-	print("[INFO] [main]: Servidor operacional!");
+    DIALOGO_REGISTRO,
+    DIALOGO_LOGIN
 }
 
+/* VARIÁVEIS */
+new DB:db_handle;					// Variável que armazena a conexão atual com o banco de dados
+new db_filename[] = "data.db";		// Nome do banco de dados principal (ALTERAR SE FOR NECESSÁRIO)
+
+/* FUNÇÃO PRINCIPAL DO GM */
+main()
+{
+	print("[INFO] [main]: Servidor operacional!\n");
+}
+
+/* FUNÇÕES ÚTEIS */
+/* DATABASE */
+// Conecta com o banco de dados, retornando o handle caso sucesso
+stock db_connect(filename[], &DB:handle)
+{
+	// Cria uma conexão com o banco de dados
+	if((handle = db_open(filename)) == DB:0)
+	{
+		// Falha
+		print("[ERRO] [BD]: Problema na conexão com o banco de dados! O servidor será fechado...\n");
+		SendRconCommand("exit");
+	}
+	else
+	{
+		// Successo
+		print("[INFO] [BD]: Conectado com sucesso com o banco de dados!\n");
+	}
+}
+// Desconecta com o banco de dados
+stock db_disconnect(DB:handle)
+{
+	// Desconecta o banco de dados
+	db_close(handle);
+}
+// Verifica se o jogador já tem ou não registro no banco de dados e registra ou não o jogador no servidor
+stock check_for_account(playerid, DB:handle)
+{
+	new query_sql[40+MAX_PLAYER_NAME];				// SQL da query
+	new DBResult:query_result;					// Recebe a id da query para poder limpar depois
+	
+	format(query_sql, sizeof(query_sql), "SELECT * FROM `players` WHERE `name`='%q'", return_playername(playerid));				 // Formata a string SQL para a consulta
+	
+	query_result = db_query(handle, query_sql);	// Realiza a consulta no BD
+	
+    // Retorna o número de linhas da consulta, nesse caso se não houver nenhuma linha signfica que o jogador não tem uma conta no servidor. 
+    if(db_num_rows(query_result) == 0) 
+    {
+		db_free_result(query_result);	// Limpa a query
+		return 0;							// Não tem uma conta.
+    }
+    else 
+    {
+		db_free_result(query_result);	// Limpa a query
+		return 1;							// Tem uma conta.
+    }
+}
+
+/* CALLBACKS */
+/* OnGameModeInit */
 public OnGameModeInit()
 {
-	// Incializa o Banco de Dados SQLite principal para ser usado no servidor
-	ConectarBD(bd_nome, db_principal);
-
 	// Ajusta as informações do servidor
 	SetGameModeText("O Feudo v0.0alpha");
 	
+	// Conecta com o banco de dados
+	db_connect(db_filename, db_handle);
 	
+	// TEMPORARIO
 	AddPlayerClass(0, 1958.3783, 1343.1572, 15.3746, 269.1425, 0, 0, 0, 0, 0, 0);
 	return 1;
 }
 
 public OnGameModeExit()
 {
-	// Fecha o BD principal
-	DesconectarBD(db_principal);
+	// Desconecta com o banco de dados
+	db_disconnect(db_handle);
 	return 1;
 }
 
@@ -48,13 +110,49 @@ public OnPlayerRequestClass(playerid, classid)
 
 public OnPlayerConnect(playerid)
 {
-	LoginPlayer(db_principal, playerid);
+	// Verifica se o jogador tem ou não uma conta
+	switch (check_for_account(playerid, db_handle))
+	{
+		case 0:
+		{
+			// Registra o jogador
+			ShowPlayerDialog(playerid, DIALOGO_REGISTRO, DIALOG_STYLE_PASSWORD, "{FF0000}# {FFFFFF}San Andreas: O Feudo", "{FFFFFF}Digite uma senha segura para que você se registre.", "Registrar", "");
+
+		}
+		case 1:
+		{
+			// Loga o jogador
+			ShowPlayerDialog(playerid, DIALOGO_LOGIN, DIALOG_STYLE_PASSWORD, "{FF0000}# {FFFFFF}San Andreas: O Feudo", "{FFFFFF}Digite a sua senha para logar-se", "Logar", "");
+		}
+	}
+	return 1;
+}
+
+public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
+{
+	switch (dialogid)
+	{
+		// Caso seja o diálogo de registro
+		case DIALOGO_REGISTRO:
+		{
+			if(!response) Kick(playerid);		// Caso o jogador cancele o diálogo, kicka (ALTERAR MAIS TARDE PARA A FUNÇÃO PERSONALIZADA!)
+		}
+		// Caso seja o diálogo de login
+		case DIALOGO_LOGIN:
+		{
+			if(!response) Kick(playerid);		// Caso o jogador cancele o diálogo, kicka (ALTERAR MAIS TARDE PARA A FUNÇÃO PERSONALIZADA!)
+		}
+	}
 	return 1;
 }
 
 public OnPlayerDisconnect(playerid, reason)
 {
-	SyncPlayer(db_principal, playerid);
+	return 1;
+}
+
+public OnPlayerSpawn(playerid)
+{
 	return 1;
 }
 
@@ -80,15 +178,40 @@ public OnPlayerText(playerid, text[])
 
 public OnPlayerCommandText(playerid, cmdtext[])
 {
-	if (strcmp("/mycommand", cmdtext, true, 10) == 0)
-	{
-		// Do something here
-		return 1;
-	}
 	return 0;
 }
 
+public OnPlayerEnterVehicle(playerid, vehicleid, ispassenger)
+{
+	return 1;
+}
+
+public OnPlayerExitVehicle(playerid, vehicleid)
+{
+	return 1;
+}
+
 public OnPlayerStateChange(playerid, newstate, oldstate)
+{
+	return 1;
+}
+
+public OnPlayerEnterCheckpoint(playerid)
+{
+	return 1;
+}
+
+public OnPlayerLeaveCheckpoint(playerid)
+{
+	return 1;
+}
+
+public OnPlayerEnterRaceCheckpoint(playerid)
+{
+	return 1;
+}
+
+public OnPlayerLeaveRaceCheckpoint(playerid)
 {
 	return 1;
 }
@@ -98,7 +221,22 @@ public OnRconCommand(cmd[])
 	return 1;
 }
 
+public OnPlayerRequestSpawn(playerid)
+{
+	return 1;
+}
+
 public OnObjectMoved(objectid)
+{
+	return 1;
+}
+
+public OnPlayerObjectMoved(playerid, objectid)
+{
+	return 1;
+}
+
+public OnPlayerPickUpPickup(playerid, pickupid)
 {
 	return 1;
 }
@@ -114,6 +252,26 @@ public OnVehiclePaintjob(playerid, vehicleid, paintjobid)
 }
 
 public OnVehicleRespray(playerid, vehicleid, color1, color2)
+{
+	return 1;
+}
+
+public OnPlayerSelectedMenuRow(playerid, row)
+{
+	return 1;
+}
+
+public OnPlayerExitedMenu(playerid)
+{
+	return 1;
+}
+
+public OnPlayerInteriorChange(playerid, newinteriorid, oldinteriorid)
+{
+	return 1;
+}
+
+public OnPlayerKeyStateChange(playerid, newkeys, oldkeys)
 {
 	return 1;
 }
@@ -148,158 +306,9 @@ public OnVehicleStreamOut(vehicleid, forplayerid)
 	return 1;
 }
 
-public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
-{
-	return 0;
-}
-
 public OnPlayerClickPlayer(playerid, clickedplayerid, source)
 {
 	return 1;
 }
 
-public OnEnterExitModShop(playerid, enterexit, interiorid)
-{
-	return 1;
-}
-
-public OnIncomingConnection(playerid, ip_address[], port)
-{
-	return 1;
-}
-
-public OnPlayerClickMap(playerid, Float:fX, Float:fY, Float:fZ)
-{
-	return 1;
-}
-
-public OnPlayerClickPlayerTextDraw(playerid, PlayerText:playertextid)
-{
-	return 1;
-}
-
-public OnPlayerClickTextDraw(playerid, Text:clickedid)
-{
-	return 1;
-}
-
-public OnPlayerEditAttachedObject(playerid, response, index, modelid, boneid, Float:fOffsetX, Float:fOffsetY,
-	Float:fOffsetZ, Float:fRotX, Float:fRotY, Float:fRotZ, Float:fScaleX, Float:fScaleY, Float:fScaleZ)
-{
-	return 1;
-}
-
-
-public OnPlayerEditObject(playerid, playerobject, objectid, response, Float:fX, Float:fY, Float:fZ,
-	Float:fRotX, Float:fRotY, Float:fRotZ)
-{
-	return 1;
-}
-
-
-public OnPlayerEnterCheckpoint(playerid)
-{
-	return 1;
-}
-
-public OnPlayerEnterRaceCheckpoint(playerid)
-{
-	return 1;
-}
-
-public OnPlayerEnterVehicle(playerid, vehicleid, ispassenger)
-{
-	return 1;
-}
-
-public OnPlayerExitVehicle(playerid, vehicleid)
-{
-	return 1;
-}
-
-public OnPlayerExitedMenu(playerid)
-{
-	return 1;
-}
-
-public OnPlayerGiveDamage(playerid, damagedid, Float:amount, weaponid, bodypart)
-{
-	return 1;
-}
-
-public OnPlayerInteriorChange(playerid, newinteriorid, oldinteriorid)
-{
-	return 1;
-}
-
-public OnPlayerKeyStateChange(playerid, newkeys, oldkeys)
-{
-	return 1;
-}
-
-public OnPlayerLeaveCheckpoint(playerid)
-{
-	return 1;
-}
-
-public OnPlayerLeaveRaceCheckpoint(playerid)
-{
-	return 1;
-}
-
-public OnPlayerObjectMoved(playerid, objectid)
-{
-	return 1;
-}
-
-public OnPlayerPickUpPickup(playerid, pickupid)
-{
-	return 1;
-}
-
-public OnPlayerRequestSpawn(playerid)
-{
-	return 1;
-}
-
-
-public OnPlayerSelectObject(playerid, type, objectid, modelid, Float:fX, Float:fY, Float:fZ)
-{
-	return 1;
-}
-
-public OnPlayerSelectedMenuRow(playerid, row)
-{
-	return 1;
-}
-
-public OnPlayerSpawn(playerid)
-{
-	return 1;
-}
-
-public OnPlayerTakeDamage(playerid, issuerid, Float:amount, weaponid, bodypart)
-{
-	return 1;
-}
-
-
-public OnPlayerWeaponShot(playerid, weaponid, hittype, hitid, Float:fX, Float:fY, Float:fZ)
-{
-	return 1;
-}
-
-public OnTrailerUpdate(playerid, vehicleid)
-{
-	return 1;
-}
-
-public OnUnoccupiedVehicleUpdate(vehicleid, playerid, passenger_seat, Float:new_x, Float:new_y, Float:new_z, Float:vel_x, Float:vel_y, Float:vel_z)
-{
-	return 1;
-}
-
-public OnVehicleDamageStatusUpdate(vehicleid, playerid)
-{
-	return 1;
-}
+/* COMANDOS (DCMD) */
