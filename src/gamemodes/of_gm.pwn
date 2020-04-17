@@ -7,8 +7,7 @@
  */
  
 /* BIBLIOTECAS */
-#include "../include/of_common.inc"		// Biblioteca principal do projeto
-#include "../include/MD5.inc"				// Biblioteca para gerar hash MD5
+#include "../include/of_db.inc"				// Biblioteca de banco de dados (que herda também a principal do projeto)
 
 /* CONSTANTES */
 // dcmd
@@ -43,7 +42,7 @@ public OnGameModeInit()
 	SetGameModeText("O Feudo v0.0alpha");
 	
 	// Conecta com o banco de dados
-	db_connect(db_filename, db_handle);
+	conectar_bancodedados(db_filename, db_handle);
 	
 	// Ativa o timer de sincronização de dados
 	sync_timer_id = SetTimerEx("sync_players", SYNC_FREQUENCY_MS, true, "i", DB:db_handle);
@@ -58,7 +57,7 @@ public OnGameModeExit()
 	// Encerra o timer de sincronização
 	KillTimer(sync_timer_id);
 	// Desconecta com o banco de dados
-	db_disconnect(db_handle);
+	desconectar_bancodedados(db_handle);
 	return 1;
 }
 
